@@ -1,0 +1,117 @@
+package com.company;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+public class PajakCalc {
+    private JTextField textPeng;
+    private JComboBox<String> comboPTKP;
+    private JButton hitungButton;
+    private JButton hapusButton;
+    private JTextArea textHasil;
+    private JLabel labelJudul;
+    private JLabel labelPeng;
+    private JLabel labelPTKP;
+    private JPanel panel;
+
+
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("KalkulatorPPh");
+        frame.setContentPane(new PajakCalc().panel);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setSize(600, 600);
+        frame.setResizable(true);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    public PajakCalc() {
+        comboPTKP.addItem("TK");
+        comboPTKP.addItem("TK1");
+        comboPTKP.addItem("TK2");
+        comboPTKP.addItem("TK3");
+        comboPTKP.addItem("K");
+        comboPTKP.addItem("K1");
+        comboPTKP.addItem("K2");
+        comboPTKP.addItem("K3");
+
+        hitungButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    double penghasilanBruto = Double.parseDouble(textPeng.getText());
+                    String status = comboPTKP.getSelectedItem().toString();
+
+                    double biayaJabatan = penghasilanBruto * 0.05;
+                    if (biayaJabatan > 6000000) {
+                        biayaJabatan = 6000000;
+                    }
+
+                    double ptkp = hitungPTKP(status);
+                    double pkp = penghasilanBruto - biayaJabatan - ptkp;
+                    if (pkp < 0) {
+                        pkp = 0;
+                    }
+
+                    double pph21 = hitungPPh21(pkp);
+
+                    textHasil.setText(String.format(
+                            "Penghasilan Bruto: Rp %.2f\nBiaya Jabatan: Rp %.2f\nPTKP: Rp %.2f\nPKP: Rp %.2f\nPPh 21: Rp %.2f",
+                             penghasilanBruto, biayaJabatan, ptkp, pkp, pph21
+                    ));
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Masukkan angka yang valid!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        hapusButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textPeng.setText("");
+                textHasil.setText("");
+                comboPTKP.setSelectedIndex(0);
+            }
+        });
+    }
+
+    private double hitungPTKP(String status) {
+        double ptkp = 54000000; // PTKP untuk TK/Orang Pribadi
+        switch(status.toUpperCase()) {
+            case "TK1", "K":
+                ptkp += 4500000;
+                break;
+            case "TK2", "K1":
+                ptkp += 4500000 * 2;
+                break;
+            case "TK3", "K2":
+                ptkp += 4500000 * 3;
+                break;
+            case "K3":
+                ptkp += 4500000 * 4;
+                break;
+        }
+        return ptkp;
+    }
+
+    private double hitungPPh21(double pkp) {
+        double pph = 0;
+        double[] batas = {60000000, 190000000, 250000000, 500000000};
+        double[] tarif = {0.05, 0.15, 0.25, 0.3};
+
+        for (int i = 0; i < batas.length; i++) {
+            if (pkp > batas[i]) {
+                pph += batas[i] * tarif[i];
+                pkp -= batas[i];
+            } else {
+                pph += pkp * tarif[i];
+                break;
+            }
+        }
+       return pph;
+    }
+
+}
